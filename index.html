@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mở tài khoản chứng khoán</title>
+<style>
+  :root { --bg:#f4f6f8; --card:#fff; --text:#1d2733; --muted:#5b6775; --accent:#0a7a4a; --accent2:#e8f5ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+  .wrap { max-width:460px; margin:0 auto; padding:28px 16px; }
+  .card { background:var(--card); border-radius:16px; padding:24px 20px; box-shadow:0 2px 12px rgba(0,0,0,.06); }
+  h1 { font-size:21px; margin:0 0 8px; }
+  p { color:var(--muted); line-height:1.55; margin:8px 0; font-size:15px; }
+  .btn { display:block; width:100%; text-align:center; padding:15px; margin-top:14px; border:0; border-radius:12px;
+         font-size:16px; font-weight:600; cursor:pointer; text-decoration:none; }
+  .primary { background:var(--accent); color:#fff; }
+  .secondary { background:var(--accent2); color:var(--accent); }
+  .steps { background:#fff8e6; border-radius:12px; padding:14px 16px; margin-top:16px; font-size:15px; line-height:1.6; }
+  .steps b { color:var(--text); }
+  .hidden { display:none; }
+  .toast { text-align:center; color:var(--accent); font-size:14px; margin-top:8px; min-height:18px; }
+  .foot { text-align:center; font-size:12px; color:var(--muted); margin-top:18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Mở tài khoản chứng khoán online</h1>
+    <p id="msg">Đang mở trang đăng ký trong trình duyệt…</p>
+
+    <a id="openBtn" class="btn primary" href="#">Mở trang đăng ký</a>
+    <button id="copyBtn" class="btn secondary" type="button">Sao chép link</button>
+    <div id="toast" class="toast"></div>
+
+    <div id="iosSteps" class="steps hidden">
+      Nếu trang chưa tự mở, anh/chị làm như sau:<br>
+      1. Bấm dấu <b>⋯</b> ở góc trên bên phải<br>
+      2. Chọn <b>Mở bằng trình duyệt</b> (Safari)<br>
+      Hoặc bấm <b>Sao chép link</b> rồi dán vào Safari.
+    </div>
+    <div id="androidSteps" class="steps hidden">
+      Nếu trang chưa tự mở, anh/chị bấm dấu <b>⋯</b> ở góc trên bên phải và chọn
+      <b>Mở bằng trình duyệt</b>, hoặc bấm <b>Sao chép link</b> rồi dán vào Chrome.
+    </div>
+  </div>
+  <div class="foot">Trang đăng ký chính thức: www.vcbs.com.vn</div>
+</div>
+
+<script>
+(function () {
+  // ===== Link đích — chỉ cần sửa dòng này nếu đổi mã brid =====
+  var TARGET = "https://www.vcbs.com.vn/ekyc?brid=03000";
+
+  var ua = navigator.userAgent || "";
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var inApp = /Zalo|FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|TikTok|musical_ly/i.test(ua);
+
+  var noScheme = TARGET.replace(/^https?:\/\//, "");
+  var androidIntent = "intent://" + noScheme +
+      "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=" +
+      encodeURIComponent(TARGET) + ";end";
+  var iosSafari = "x-safari-https://" + noScheme;
+
+  var openBtn = document.getElementById("openBtn");
+  var msg = document.getElementById("msg");
+
+  if (!inApp) {
+    // Đang ở trình duyệt thường -> chuyển thẳng
+    openBtn.href = TARGET;
+    window.location.replace(TARGET);
+    return;
+  }
+
+  if (isAndroid) {
+    openBtn.href = androidIntent;
+    document.getElementById("androidSteps").classList.remove("hidden");
+    msg.textContent = "Trang đăng ký cần mở bằng Chrome để chụp CCCD và xác thực khuôn mặt.";
+    setTimeout(function () { window.location.href = androidIntent; }, 300);
+  } else if (isIOS) {
+    openBtn.href = iosSafari;
+    document.getElementById("iosSteps").classList.remove("hidden");
+    msg.textContent = "Trang đăng ký cần mở bằng Safari để chụp CCCD và xác thực khuôn mặt.";
+    setTimeout(function () { window.location.href = iosSafari; }, 300);
+  } else {
+    openBtn.href = TARGET;
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", function () {
+    var toast = document.getElementById("toast");
+    function ok() { toast.textContent = "Đã sao chép link, hãy dán vào trình duyệt."; }
+    function fallback() {
+      var t = document.createElement("textarea");
+      t.value = TARGET; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      try { document.execCommand("copy"); ok(); } catch (e) { toast.textContent = TARGET; }
+      document.body.removeChild(t);
+    }
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(TARGET).then(ok, fallback);
+      } else { fallback(); }
+    } catch (e) { fallback(); }
+  });
+})();
+</script>
+</body>
+</html>
